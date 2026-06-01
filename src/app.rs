@@ -8,7 +8,7 @@ use gtk::{
     ScrolledWindow, SelectionMode, Separator, Spinner, Stack,
 };
 
-use crate::converter::{self, ConvertJob, ImageOutputFormat};
+use crate::converter::{self, ConvertJob};
 use crate::output_picker::OutputPicker;
 
 const APP_ID: &str = "com.calirko.permutt";
@@ -55,7 +55,6 @@ fn build_ui(app: &Application) {
 #[derive(Default)]
 struct AppState {
     files: Vec<PathBuf>,
-    output_format: Option<ImageOutputFormat>,
     output_dir: Option<PathBuf>,
 }
 
@@ -414,15 +413,23 @@ fn build_right_panel(state: Arc<Mutex<AppState>>) -> GBox {
                 btn_done.set_sensitive(true);
 
                 let ok = results.iter().filter(|r| r.success).count();
-                let fail = results.iter().filter(|r| !r.success).count();
+                let failures: Vec<&str> = results
+                    .iter()
+                    .filter_map(|r| r.error.as_deref())
+                    .collect();
 
-                let msg = if fail == 0 {
+                let msg = if failures.is_empty() {
                     format!("Done! {} file(s) converted.", ok)
                 } else {
-                    format!("{} converted, {} failed.", ok, fail)
+                    format!(
+                        "{} converted, {} failed: {}",
+                        ok,
+                        failures.len(),
+                        failures[0]
+                    )
                 };
 
-                show_status(&status_label_done, &status_rev_done, &msg, fail == 0);
+                show_status(&status_label_done, &status_rev_done, &msg, failures.is_empty());
             }
         });
     });

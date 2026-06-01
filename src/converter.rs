@@ -52,23 +52,17 @@ pub struct ConvertJob {
 }
 
 pub struct ConvertResult {
-    pub input: PathBuf,
-    pub output: PathBuf,
     pub success: bool,
     pub error: Option<String>,
 }
 
 pub fn convert(job: &ConvertJob) -> ConvertResult {
     match do_convert(job) {
-        Ok(output) => ConvertResult {
-            input: job.input.clone(),
-            output,
+        Ok(_) => ConvertResult {
             success: true,
             error: None,
         },
         Err(e) => ConvertResult {
-            input: job.input.clone(),
-            output: PathBuf::new(),
             success: false,
             error: Some(e.to_string()),
         },
